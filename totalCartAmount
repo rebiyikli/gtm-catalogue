@@ -1,0 +1,37 @@
+const copyFromWindow = require('copyFromWindow');
+const setInWindow = require('setInWindow');
+
+const insiderObject = copyFromWindow('insider_object') || {};
+const dataLayer = copyFromWindow('dataLayer');
+
+var getData = function (data) {
+    var dataFieldPath = data.split('.');
+    var parentDataName = dataFieldPath[0];
+    var parentData = {};
+
+    dataFieldPath.shift();
+
+    dataLayer.some(function (windowData) {
+        if (typeof windowData[parentDataName] !== 'undefined') {
+            parentData = windowData[parentDataName];
+
+            return true;
+        }
+    });
+
+    if (typeof parentData !== 'undefined') {
+        dataFieldPath.forEach(function (field) {
+            parentData = parentData[field];
+        });
+    }
+
+    return parentData;
+};
+
+insiderObject.basket = insiderObject.basket || {};
+
+insiderObject.basket.total = getData(data.cartAmount);
+
+setInWindow('insider_object', insiderObject, true);
+
+data.gtmOnSuccess();
